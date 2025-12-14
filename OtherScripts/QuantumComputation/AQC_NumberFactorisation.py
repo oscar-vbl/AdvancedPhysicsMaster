@@ -110,18 +110,20 @@ def getNumberStates(bitsNum):
 
     return statesNumberDict
 
-def getReducedDensityMatrix(qubitsNum, qubitsNumA, twoQubit_numberStates, rho):
+def getReducedDensityMatrix(qubitsNum, qubitsNumA, rho, twoQubit_numberStates=None, dtype=None):
     '''
     Get reduced density matrix from rho_AB
     Trace over two-qubit subspace
-    rho_A = Tr_B (rho) = sum_i I ox <i| rho I ox |i>
+    rho_A = Tr_B (rho) = sum_i I_A ox <i|_B rho_AB I_A ox |i>_B
     '''
-    rho_reduced = np.zeros((qubitsNumA**2, qubitsNumA**2))
+    if twoQubit_numberStates is None:
+        twoQubit_numberStates = getNumberStates(qubitsNumA)
+    rho_reduced = np.zeros((qubitsNumA**2, qubitsNumA**2), dtype=dtype)
     for stateNum in twoQubit_numberStates:
         stateA = np.identity(qubitsNum)
         stateB = twoQubit_numberStates[stateNum]["State"]
-        leftProduct  = np.kron(stateA, np.atleast_2d(stateB).T)
-        rightProduct = np.kron(stateA, stateB)
+        leftProduct  = np.kron(stateA, np.atleast_2d(stateB).T).astype(dtype)
+        rightProduct = np.kron(stateA, stateB).astype(dtype)
         rho_reduced += np.matmul(np.matmul(leftProduct, rho), rightProduct)
     return rho_reduced
 
@@ -167,7 +169,7 @@ def factorNumber(numToFactor, lambdaGap=0.01, dropRows = False, plotData = True,
         rho = np.outer(groundState, groundState)
 
         # Get reduced rho_A = Tr_B (rho) = sum_i I ox <i| rho I ox |i>
-        rho_reduced = getReducedDensityMatrix(qubitsNum, qubitsNumA, twoQubit_numberStates, rho)
+        rho_reduced = getReducedDensityMatrix(qubitsNum, qubitsNumA, rho, twoQubit_numberStates)
         
         # Calculate entropy (use trace of matrix is eq to sum of eigvalues)
         redEigVals = np.linalg.eigvalsh(rho_reduced)

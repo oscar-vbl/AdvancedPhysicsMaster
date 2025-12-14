@@ -25,10 +25,10 @@ def sigma_expectation(counts, qubit_indexes):
     
     return expected
 
-def getVQEAnsatzConfig(numQubits, theta_angles):
+def getVQEAnsatzConfig(numQubits, theta_angles, numAncilla=0):
     configuration = {
         "QubitsNumber": numQubits,
-        "AncillaQubits": 0,
+        "AncillaQubits": numAncilla,
         "MeasurementQubits": numQubits,
         "Gates": []
     }
@@ -54,15 +54,23 @@ def getVQEAnsatzConfig(numQubits, theta_angles):
     return configuration
 
 class VQESolver():
-    def __init__(self, numQubits, hamiltonian):
+    def __init__(self, numQubits, hamiltonian, ansatz_circuit=None):
         self.numQubits = numQubits
         self.hamiltonian = hamiltonian
         self.backend = GenericBackendV2(num_qubits=self.numQubits)
+        self.ansatz_circuit = ansatz_circuit
+
 
 
     def getEnergy(self, theta_angles):
-        configuration = getVQEAnsatzConfig(self.numQubits, theta_angles)
-        ansatz_circuit = buildCircuit(configuration)
+        if not self.ansatz_circuit:
+            configuration = getVQEAnsatzConfig(self.numQubits, theta_angles)
+            ansatz_circuit = buildCircuit(configuration)
+        else:
+            ansatz_circuit = self.ansatz_circuit
+        return self.calculateEnergyValue(ansatz_circuit)
+
+    def calculateEnergyValue(self, ansatz_circuit):
         energy = 0.0
         for pauli_string, qubits, coeff in self.hamiltonian.to_sparse_list():
             ind_circuit = ansatz_circuit.copy()
@@ -153,7 +161,7 @@ def VQE_Energy_Field(numQubits, h_values, plot=True):
     if plot:
         import matplotlib.pyplot as plt 
         plt.plot(h_values, energy_values, marker='o')
-        plt.xlabel("Transverse field h")
+        plt.xlabel("Transverse field $h$")
         plt.ylabel("Ground state energy (VQE)")
         plt.title(f"VQE Ground State Energy for Transverse Ising Model ({numQubits} qubits)")
         plt.grid()  
@@ -181,10 +189,10 @@ if __name__ == "__main__":
     h_field = 0.5
     h_values = np.linspace(0.0, 2.0, 30)
 
-    if False:
+    if True:
         energy_values = VQE_Energy_Field(numQubits, h_values, plot=True)
     
-    if True:
+    if False:
         numQubitsValues = [4, 6, 8, 10, 15, 20]
         compTimeValues = []
         for numQubits in numQubitsValues:

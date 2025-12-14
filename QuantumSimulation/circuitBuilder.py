@@ -4,6 +4,7 @@ from qiskit import QuantumCircuit, AncillaRegister, ClassicalRegister, QuantumRe
 from qiskit.circuit.library import RXGate, RYGate, RZGate, CXGate, UGate
 from qiskit.circuit.exceptions import CircuitError
 from qiskit.quantum_info import Statevector
+
 def buildCircuit(configuration):
     '''
     Build quantum circuit given a configuration dictionary.
@@ -48,6 +49,7 @@ def buildCircuit(configuration):
 
 def addGate(circuit: QuantumCircuit, gate, ancilla=None):
     gateType = gate["gate"]
+    if not ancilla: ancilla = circuit.ancillas
     if gateType == "CNOT":
         # Control qubit of CNOT gate
         controlQubitNum = gate["control"]["Number"]
@@ -71,7 +73,7 @@ def addGate(circuit: QuantumCircuit, gate, ancilla=None):
         circuit.h(qubit)
 
     elif gateType == "SDG":
-        # Hadamard gate
+        # S-Dagger gate
         qubitNum  = gate["qubit"]["Number"]
         isAncilla = gate["qubit"].get("Ancilla", False)
         if isAncilla: qubit = ancilla[qubitNum]
@@ -163,6 +165,7 @@ def get_statevector_from_counts(counts):
     # 5. Build statevector
     sv = Statevector(amps)
     return sv
+
 if __name__ == "__main__":
     numQubits = 3
     numAncilla = 1
