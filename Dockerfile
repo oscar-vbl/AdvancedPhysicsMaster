@@ -48,3 +48,13 @@ USER quantum
 
 # Default command: import smoke test.
 CMD ["python", "-c", "import QuantumSimulation; print('QuantumSimulation container is ready.')"]
+
+# ---------------------------------------------------
+# Isolated test stage to run tests without polluting the final image.
+# ---------------------------------------------------
+FROM base AS test
+
+USER root
+RUN python -m pip install ".[test]"
+USER quantum
+RUN python -m pytest QuantumSimulation/tests -v
