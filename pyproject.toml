@@ -8,5 +8,5 @@ include = ["QuantumSimulation", "QuantumSimulation.*"]
 
 [project.optional-dependencies]
 test = [
-    "pytest",
+    "pytest", "pytest-cov"
 ]
